@@ -1,6 +1,20 @@
-// الفلترة حسب السنة + حفظ/تحميل البيانات (Filter by Year + File I/O)
-#include <stdio.h>
+#ifndef BOOK_H
+#define BOOK_H
 
-void filterByYear();
-void saveBooks();
-void loadBooks();
+#define MAX_TITLE_LEN 70
+#define MAX_AUTHOR_LEN 70
+#define MAX_BOOKS 500 
+
+typedef struct {
+    int id;
+    char title[MAX_TITLE_LEN];
+    char author[MAX_AUTHOR_LEN];
+    int publication_year;
+    int is_borrowed; 
+} Book;
+
+void display_book(const Book *book);
+int get_next_id(const Book *books, int count);
+void clear_input_buffer(); 
+
+#endif
