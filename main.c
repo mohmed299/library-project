@@ -1,42 +1,50 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<CodeBlocks_project_file>
-	<FileVersion major="1" minor="6" />
-	<Project>
-		<Option title="main.c" />
-		<Option execution_dir="C:/Users/IT SHOP/Desktop/main.c/" />
-		<Option pch_mode="2" />
-		<Option compiler="gcc" />
-		<Build>
-			<Target title="Debug">
-				<Option output="bin/Debug/main.c" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Debug/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-g" />
-				</Compiler>
-			</Target>
-			<Target title="Release">
-				<Option output="bin/Release/main.c" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O2" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
-			</Target>
-		</Build>
-		<Compiler>
-			<Add option="-Wall" />
-		</Compiler>
-		<Unit filename="main.c/main.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Extensions>
-			<lib_finder disable_auto="1" />
-		</Extensions>
-	</Project>
-</CodeBlocks_project_file>
+#include <stdio.h>   
+#include <stdlib.h>  
+
+#include "book.h"    
+
+#define DATA_FILE "library_books.txt"
+
+int main() {
+    Book library[MAX_BOOKS];
+    int book_count = 0;
+
+    printf("Initializing library...\n");
+
+    int choice;
+    do {
+        system("cls || clear");
+
+        printf("\n--- Library Book Tracking System ---\n");
+        printf("1. Admin Mode\n");
+        printf("2. User Mode\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        clear_input_buffer();
+
+        switch (choice) {
+            case 1:
+                printf("Entering Admin Mode (Not yet implemented).\n");
+                break;
+            case 2:
+                printf("Entering User Mode (Not yet implemented).\n");
+                break;
+            case 3:
+                printf("Exiting Library System. Goodbye!\n");
+                break;
+            default:
+                printf("Invalid choice. Please try again.\n");
+                break;
+        }
+
+        if (choice != 3) {
+            printf("Press Enter to continue...");
+            clear_input_buffer();
+        }
+
+    } while (choice != 3);
+
+    return 0; 
+}
