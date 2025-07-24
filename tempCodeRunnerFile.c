@@ -7,60 +7,64 @@ void removeBook();
 void countTotalBooks();
 
 
+
+
 Book library[MAX_BOOKS];
-
 int book_count = 0;
-
 int next_id = 1;
 
 // Function to add a book
 void add_book() {
-
     if (book_count >= MAX_BOOKS) {
-
-        printf("Library is full and you Cannot add more books.\n");
-
+        printf("Library is full! Cannot add more books.\n");
         return;
     }
     
-    printf("\n Add New Book \n");
-
-
-    printf("Enter the book title: ");
-
-
-    scanf("%s", library[book_count].title);
+    printf("\n--- Add New Book ---\n");
+    printf("Enter book title: ");
+    fgets(library[book_count].title, MAX_TITLE_LEN, stdin);
+    library[book_count].title[strcspn(library[book_count].title, "\n")] = 0; // Remove newline
     
     printf("Enter author name: ");
-    scanf("%s", library[book_count].author);
+    fgets(library[book_count].author, MAX_AUTHOR_LEN, stdin);
+    library[book_count].author[strcspn(library[book_count].author, "\n")] = 0; // Remove newline
     
     printf("Enter publication year: ");
-    scanf("%d", &library[book_count].publication_year);
+    while (scanf("%d", &library[book_count].publication_year) != 1) {
+        clear_input_buffer();
+        printf("Invalid input! Please enter a valid year: ");
+    }
+    clear_input_buffer();
     
     library[book_count].id = next_id++;
-
     library[book_count].is_borrowed = 0;
     
     book_count++;
-
     printf("Book added successfully! (ID: %d)\n", library[book_count-1].id);
 }
 
-// Function to remove books
+// remove books
+
+// Forward declarations for helper functions
+void clear_input_buffer();
+int find_book_by_id(int id);
+
 void remove_book() {
     if (book_count == 0) {
-
-
-        printf("No books in this library to remove.\n");
+        printf("No books in the library to remove.\n");
         return;
     }
     
     int id;
-
-
-    printf("\n Remove Book\n");
+    printf("\n--- Remove Book ---\n");
     printf("Enter book ID to remove: ");
-    scanf("%d", &id);
+    
+    if (scanf("%d", &id) != 1) {
+        clear_input_buffer();
+        printf("Invalid input!\n");
+        return;
+    }
+    clear_input_buffer();
     
     int index = find_book_by_id(id);
     if (index == -1) {
@@ -68,14 +72,19 @@ void remove_book() {
         return;
     }
     
-    printf("Book was found: \"%s\" by %s\n", library[index].title, library[index].author);
-
-    printf("Are you sure you wanna remove this book? (y/n): ");
+    printf("Book found: \"%s\" by %s\n", library[index].title, library[index].author);
+    printf("Are you sure you want to remove this book? (y/n): ");
 
     char confirm;
-    scanf(" %c", &confirm);
+    if (scanf(" %c", &confirm) != 1 || (confirm != 'y' && confirm != 'n')) {
+        clear_input_buffer();
+        printf("Invalid input!\n");
+        return;
+    }
+    clear_input_buffer();
 
     if (confirm == 'y') {
+        // Remove the book
         for (int i = index; i < book_count - 1; i++) {
             library[i] = library[i + 1];
         }
@@ -86,16 +95,13 @@ void remove_book() {
     }
 }
 
+// count total books
 
-// Function to count total books
 void count_total_books() {
-
-    printf("\n Book Count \n");
-
+    printf("\n--- Book Statistics ---\n");
     printf("Total books in library: %d\n", book_count);
     
     int available = 0, borrowed = 0;
-
     for (int i = 0; i < book_count; i++) {
         if (library[i].is_borrowed) {
             borrowed++;
@@ -105,15 +111,32 @@ void count_total_books() {
     }
     
     printf("Available books: %d\n", available);
-
-    printf("Total books: %d\n", book_count);
-
     printf("Borrowed books: %d\n", borrowed);
+}
 
-    if (available == 0 && borrowed == 0) {
-        printf("No books are available in this library.\n");
-        return;
-    }   
+void view_available_books() {
+    int available_count = 0;
+    
+    printf("\n--- Available Books ---\n");
+    printf("%-5s %-30s %-20s %-6s\n", "ID", "Title", "Author", "Year");
+    printf("----------------------------------------------------------------\n");
+    
+    for (int i = 0; i < book_count; i++) {
+        if (!library[i].is_borrowed) {
+            printf("%-5d %-30s %-20s %-6d\n",
+                   library[i].id,
+                   library[i].title,
+                   library[i].author,
+                   library[i].publication_year);
+            available_count++;
+        }
+    }
+    
+    if (available_count == 0) {
+        printf("No books are currently available.\n");
+    } else {
+        printf("\nTotal available books: %d\n", available_count);
+    }
 }
 
 //view all books and view borrowed books
