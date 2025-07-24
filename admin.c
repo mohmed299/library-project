@@ -102,18 +102,9 @@ void count_total_books() {
         } else {
             available++;
         }
-    }
-    
-    printf("Available books: %d\n", available);
+    }  
 
-    printf("Total books: %d\n", book_count);
-
-    printf("Borrowed books: %d\n", borrowed);
-
-    if (available == 0 && borrowed == 0) {
-        printf("No books are available in this library.\n");
-        return;
-    }   
+    printf("Total books: %d\n", book_count);   
 }
 
 //view all books and view borrowed books
