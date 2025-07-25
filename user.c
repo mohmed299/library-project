@@ -124,9 +124,3 @@ void filterByYear(){
         printf("No books found from that year in the search results.\n");
     }
 }
-
-void main(){
-
-    searchByTitle();
-
-}
