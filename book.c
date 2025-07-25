@@ -1,48 +1,29 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+
 #include "book.h"
 
-#define LINE_LENGTH 300
-
 void display_book(const Book *book) {
-    printf("ID: %d\nTitle: %s\nAuthor: %s\nYear: %d\nStatus: %s\n\n",
-           book->id, book->title, book->author,
-           book->publication_year,
-           book->is_borrowed ? "Borrowed" : "Available");
+    printf("ID: %d\n", book->id);
+    printf("Title: %s\n", book->title);
+    printf("Author: %s\n", book->author);
+    printf("Year: %d\n", book->publication_year);
+    printf("Status: %s\n", book->is_borrowed ? "Borrowed" : "Available");
+    printf("--------------------\n");
 }
 
-int load_books_from_file(const char *filename, Book *books, int max_books) {
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        perror("Error opening file");
-        return 0;
+int get_next_id(const Book *books, int count) {
+    if (count == 0) {
+        return 1;
     }
-
-    int count = 0;
-    char line[LINE_LENGTH];
-    while (count < max_books && fgets(line, sizeof(line), file)) {
-        Book b;
-        char *token = strtok(line, "|");
-        if (token) b.id = atoi(token);
-
-        token = strtok(NULL, "|");
-        if (token) strcpy(b.title, token);
-
-        token = strtok(NULL, "|");
-        if (token) strcpy(b.author, token);
-
-        token = strtok(NULL, "|");
-        if (token) b.publication_year = atoi(token);
-
-        token = strtok(NULL, "|\n");
-        if (token) b.is_borrowed = atoi(token);
-
-        books[count++] = b;
+    int max_id = INT_MIN;
+    for (int i = 0; i < count; i++) {
+        if (books[i].id > max_id) {
+            max_id = books[i].id;
+        }
     }
-
-    fclose(file);
-    return count;
+    return max_id + 1;
 }
 
 void clear_input_buffer() {
