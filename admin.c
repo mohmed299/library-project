@@ -1,6 +1,8 @@
 // إدارة الكتب: إضافة - حذف - عد (Admin Functions)
 #include <stdio.h>
 #include "book.h"
+#include <string.h>
+#include <ctype.h>
 
 void addBook();
 void removeBook();
@@ -12,23 +14,29 @@ Book library[MAX_BOOKS];
 int book_count = 0;
 
 int next_id = 1;
+// Function to find book index by ID
+
+// Function to find book by ID
+int find_book_by_id(const Book *books, int count, int id) {
+    for (int i = 0; i < count; ++i) {
+        if (books[i].id == id) {
+            return i;
+        }
+    }
+    return -1; // Not found
+}
+
 
 // Function to add a book
-void add_book() {
-
+void addBook() {
     if (book_count >= MAX_BOOKS) {
-
         printf("Library is full and you Cannot add more books.\n");
-
         return;
     }
     
     printf("\n Add New Book \n");
 
-
     printf("Enter the book title: ");
-
-
     scanf("%s", library[book_count].title);
     
     printf("Enter author name: ");
@@ -38,7 +46,6 @@ void add_book() {
     scanf("%d", &library[book_count].publication_year);
     
     library[book_count].id = next_id++;
-
     library[book_count].is_borrowed = 0;
     
     book_count++;
@@ -47,27 +54,23 @@ void add_book() {
 }
 
 // Function to remove books
-void remove_book() {
+void removeBook() {
     if (book_count == 0) {
-
-
         printf("No books in this library to remove.\n");
         return;
     }
     
     int id;
 
-
     printf("\n Remove Book\n");
     printf("Enter book ID to remove: ");
     scanf("%d", &id);
-    
-    int index = find_book_by_id(id);
+
+    int index = find_book_by_id(library, book_count, id);
     if (index == -1) {
         printf("Book with ID %d not found.\n", id);
         return;
     }
-    
     printf("Book was found: \"%s\" by %s\n", library[index].title, library[index].author);
 
     printf("Are you sure you wanna remove this book? (y/n): ");
@@ -88,12 +91,11 @@ void remove_book() {
 
 
 // Function to count total books
-void count_total_books() {
-
+void countTotalBooks() {
     printf("\n Book Count \n");
 
     printf("Total books in library: %d\n", book_count);
-    
+
     int available = 0, borrowed = 0;
 
     for (int i = 0; i < book_count; i++) {
@@ -102,9 +104,10 @@ void count_total_books() {
         } else {
             available++;
         }
-    }  
+    }
 
-    printf("Total books: %d\n", book_count);   
+    printf("Available books: %d\n", available);
+    printf("Borrowed books: %d\n", borrowed);
 }
 
 //view all books and view borrowed books
@@ -151,3 +154,5 @@ void view_borrowed_books(const Book books[], int count) {
         printf(" No books are currently borrowed.\n");
     }
 }
+
+

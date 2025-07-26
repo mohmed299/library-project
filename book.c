@@ -1,7 +1,4 @@
 #include <stdio.h>
-#include <string.h>
-#include <limits.h>
-
 #include "book.h"
 
 void display_book(const Book *book) {
