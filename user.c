@@ -99,7 +99,7 @@ void filterByAuthor(){
     }
 }
 
-//**************************filter By Author******************************//
+//**************************filter By Year******************************//
 
 void filterByYear(){
     int year;
@@ -124,3 +124,98 @@ void filterByYear(){
         printf("No books found from that year in the search results.\n");
     }
 }
+
+//**************************User Borrowing Functions ******************************//
+
+// عرض جميع الكتب المتاحة (التي لم يتم استعارتها)
+void viewAvailableBooks() {
+    Book b;
+    FILE *fp = fopen("books.txt", "r");
+
+    if (!fp) {
+        printf("No books found, currently.\n");
+        return;
+    }
+
+    printf("\nAvailable book list:\n");
+    while (fread(&b, sizeof(Book), 1, fp)) {
+        if (!b.is_borrowed) {
+            printf("ID: %d | %s by %s (%d)\n", b.id, b.title, b.author, b.publication_year);
+        }
+    }
+
+    fclose(fp);
+}
+
+
+void borrowBook() {
+    int id, found = 0;
+    Book b;
+
+    FILE *fp = fopen("books.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+
+    if (!fp || !temp) {
+        printf("Error occurred while opening files.\n");
+        return;
+    }
+
+    printf("Enter the book ID you desire to borrow: ");
+    scanf("%d", &id);
+
+    while (fread(&b, sizeof(Book), 1, fp)) {
+        if (b.id == id && !b.is_borrowed) {
+            b.is_borrowed = 1;
+            found = 1;
+        }
+        fwrite(&b, sizeof(Book), 1, temp);
+    }
+
+    fclose(fp);
+    fclose(temp);
+    remove("books.txt");
+    rename("temp.txt", "books.txt");
+
+    if (found)
+        printf("The book is borrowed successfully.\n");
+    else
+        printf("The book is not found or already borrowed.\n");
+}
+
+
+void returnBook() {
+    int id, found = 0;
+    Book b;
+
+    FILE *fp = fopen("books.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+
+    if (!fp || !temp) {
+        printf("Error occurred while opening files.\n");
+        return;
+    }
+
+    printf("Enter the book ID you want to return: ");
+    scanf("%d", &id);
+
+    while (fread(&b, sizeof(Book), 1, fp)) {
+        if (b.id == id && b.is_borrowed) {
+            b.is_borrowed = 0;
+            found = 1;
+        }
+        fwrite(&b, sizeof(Book), 1, temp);
+    }
+
+    fclose(fp);
+    fclose(temp);
+    remove("books.txt");
+    rename("temp.txt", "books.txt");
+
+    if (found)
+        printf("The book is returned successfully.\n");
+    else
+        printf("The book is not found or not borrowed.\n");
+}
+
+
+
