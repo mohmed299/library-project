@@ -2,9 +2,9 @@
 #define BOOK_H
 
 
-#define MAX_TITLE_LEN 100
-#define MAX_AUTHOR_LEN 100
-#define MAX_BOOKS 1000
+#define MAX_TITLE_LEN 200
+#define MAX_AUTHOR_LEN 200
+#define MAX_BOOKS 800
 
 // Define the Book structure
 typedef struct {
