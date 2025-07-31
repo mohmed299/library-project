@@ -1,201 +1,52 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdlib.h> // For fopen, fclose, fscanf, fprintf
+#include <string.h> // For strcspn
+
 #include "data_handler.h"
 
-#define DATA_FILE "books.txt"
-
-void load_books(Book books[], int *count) {
-    FILE *file = fopen(DATA_FILE, "r");
-    if (!file) {
+// Function to load books from a text file
+int load_books(const char *filename, Book *books, int *count) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        // If the file doesn't exist, it's normal for the first run
+        // or if it's empty. Initialize count to 0.
         *count = 0;
-        return;
+        return 0; // Indicate failure to open/load
     }
 
-    *count = 0;
-    while (fscanf(file, "%d|%[^|]|%[^|]|%d|%d\n",
+    *count = 0; // Reset book count before loading
+    // Read 5 fields (ID, Title, Author, Year, is_borrowed)
+    while (*count < MAX_BOOKS &&
+           fscanf(file, "%d;%99[^;];%99[^;];%d;%d\n",
                   &books[*count].id,
                   books[*count].title,
                   books[*count].author,
-                  &books[*count].publication_year,
-                  &books[*count].is_borrowed) == 5) {
+                  &books[*count].publication_year, // Corrected member name
+                  &books[*count].is_borrowed) == 5) { // Corrected member name
         (*count)++;
     }
 
     fclose(file);
+    return 1; // Indicate successful loading
 }
 
-void save_books(const Book books[], int count) {
-    FILE *file = fopen(DATA_FILE, "w");
-    if (!file) {
-        printf("Error saving books!\n");
-        return;
+// Function to save books to a text file
+int save_books(const char *filename, const Book *books, int current_book_count) { // Parameter renamed to avoid conflict
+    FILE *file = fopen(filename, "w"); // Open file for writing (clears old content)
+    if (file == NULL) {
+        perror("Error opening file for saving"); // Print error message
+        return 0; // Indicate save failure
     }
 
-    for (int i = 0; i < count; i++) {
-        fprintf(file, "%d|%s|%s|%d|%d\n",
+    for (int i = 0; i < current_book_count; i++) {
+        fprintf(file, "%d;%s;%s;%d;%d\n",
                 books[i].id,
                 books[i].title,
                 books[i].author,
-                books[i].publication_year,
-                books[i].is_borrowed);
+                books[i].publication_year, // Corrected member name
+                books[i].is_borrowed);      // Corrected member name
     }
 
     fclose(file);
-}
-
-void viewAvailableBooks() {
-    Book books[MAX_BOOKS];
-    int count;
-    load_books(books, &count);
-
-    printf("\n--- Available Books ---\n");
-    int found = 0;
-    for (int i = 0; i < count; i++) {
-        if (!books[i].is_borrowed) {
-            printf("ID: %d\n", books[i].id);
-            printf("Title: %s\n", books[i].title);
-            printf("Author: %s\n", books[i].author);
-            printf("Year: %d\n", books[i].publication_year);
-            printf("--------------------------\n");
-            found = 1;
-        }
-    }
-
-    if (!found) {
-        printf("No books available at the moment.\n");
-    }
-}
-
-void borrowBook() {
-    int id;
-    printf("Enter Book ID to borrow: ");
-    scanf("%d", &id);
-
-    Book books[MAX_BOOKS];
-    int count;
-    load_books(books, &count);
-
-    int found = 0;
-    for (int i = 0; i < count; i++) {
-        if (books[i].id == id && !books[i].is_borrowed) {
-            books[i].is_borrowed = 1;
-            printf("You have successfully borrowed the book: %s\n", books[i].title);
-            found = 1;
-            break;
-        }
-    }
-
-    if (!found) {
-        printf("Book not found or already borrowed.\n");
-    } else {
-        save_books(books, count);
-    }
-}
-
-void returnBook() {
-    int id;
-    printf("Enter Book ID to return: ");
-    scanf("%d", &id);
-
-    Book books[MAX_BOOKS];
-    int count;
-    load_books(books, &count);
-
-    int found = 0;
-    for (int i = 0; i < count; i++) {
-        if (books[i].id == id && books[i].is_borrowed) {
-            books[i].is_borrowed = 0;
-            printf("You have successfully returned the book: %s\n", books[i].title);
-            found = 1;
-            break;
-        }
-    }
-
-    if (!found) {
-        printf("Book not found or was not borrowed.\n");
-    } else {
-        save_books(books, count);
-    }
-}
-
-void searchByTitle() {
-    char title[100];
-    printf("Enter title to search: ");
-    scanf(" %[^\n]", title);  // read full line
-
-    Book books[MAX_BOOKS];
-    int count;
-    load_books(books, &count);
-
-    int found = 0;
-    for (int i = 0; i < count; i++) {
-        if (strstr(books[i].title, title)) {
-            printf("ID: %d\nTitle: %s\nAuthor: %s\nYear: %d\nStatus: %s\n\n",
-                   books[i].id,
-                   books[i].title,
-                   books[i].author,
-                   books[i].publication_year,
-                   books[i].is_borrowed ? "Borrowed" : "Available");
-            found = 1;
-        }
-    }
-
-    if (!found) {
-        printf("No book found with that title.\n");
-    }
-}
-
-void filterByAuthor() {
-    char author[100];
-    printf("Enter author name to filter: ");
-    scanf(" %[^\n]", author);  // read full line
-
-    Book books[MAX_BOOKS];
-    int count;
-    load_books(books, &count);
-
-    int found = 0;
-    for (int i = 0; i < count; i++) {
-        if (strstr(books[i].author, author)) {
-            printf("ID: %d\nTitle: %s\nAuthor: %s\nYear: %d\nStatus: %s\n\n",
-                   books[i].id,
-                   books[i].title,
-                   books[i].author,
-                   books[i].publication_year,
-                   books[i].is_borrowed ? "Borrowed" : "Available");
-            found = 1;
-        }
-    }
-
-    if (!found) {
-        printf("No books found by that author.\n");
-    }
-}
-
-void filterByYear() {
-    int year;
-    printf("Enter publication year to filter: ");
-    scanf("%d", &year);
-
-    Book books[MAX_BOOKS];
-    int count;
-    load_books(books, &count);
-
-    int found = 0;
-    for (int i = 0; i < count; i++) {
-        if (books[i].publication_year == year) {
-            printf("ID: %d\nTitle: %s\nAuthor: %s\nYear: %d\nStatus: %s\n\n",
-                   books[i].id,
-                   books[i].title,
-                   books[i].author,
-                   books[i].publication_year,
-                   books[i].is_borrowed ? "Borrowed" : "Available");
-            found = 1;
-        }
-    }
-
-    if (!found) {
-        printf("No books found from that year.\n");
-    }
+    return 1; // Indicate successful saving
 }
