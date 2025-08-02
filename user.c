@@ -106,7 +106,7 @@ void filterByYear(){
     int year;
     printf("Enter publication year to filter: ");
     scanf("%d", &year);
-    getchar();  // consume newline after scanf
+    // getchar();  // consume newline after scanf (not used)
 
     int found = 0;
     for (int i = 0; i < searchResultCount; i++) {
