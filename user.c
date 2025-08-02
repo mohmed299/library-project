@@ -1,5 +1,6 @@
 // البحث عن الكتب (User Search)
 #include "user.h"
+#include <stdio.h>
 #define MAX_RESULTS 100
 
 Book searchResults[MAX_RESULTS];
