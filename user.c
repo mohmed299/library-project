@@ -1,10 +1,27 @@
-// البحث عن الكتب (User Search)
 #include "user.h"
+#include <string.h>   // For: strcspn, strncpy, strstr
+#include <ctype.h>    // For: tolower
 #include <stdio.h>
+#include <stdlib.h>
+#include "book.h"
+#include "admin.h"
+
 #define MAX_RESULTS 100
+
+// Get pointers to admin data
+static Book *library_ptr = NULL;
+static int *book_count_ptr = NULL;
+static int *next_id_ptr = NULL;
 
 Book searchResults[MAX_RESULTS];
 int searchResultCount = 0;
+
+// Initialize pointers to admin data
+void init_user_pointers() {
+    library_ptr = get_library_address();
+    book_count_ptr = get_book_count_address();
+    next_id_ptr = get_next_id_address();
+}
 
 void toLowerStr(char *str) {
     for (int i = 0; str[i]; i++) {
@@ -14,19 +31,18 @@ void toLowerStr(char *str) {
 
 //**************************Search By Title******************************//
 
-void searchByTitle(){
+void searchByTitle() {
+    // Initialize pointers if not done already
+    if (library_ptr == NULL) {
+        init_user_pointers();
+    }
+    
     char search_title[100];
     printf("Enter the book title to search: ");
+    clear_input_buffer();
     fgets(search_title, sizeof(search_title), stdin);
     search_title[strcspn(search_title, "\n")] = 0;
 
-    FILE *file = fopen(DATA_FILE, "r");
-    if (!file) {
-        printf("Error: Could not open %s\n", DATA_FILE);
-        return;
-    }
-
-    Book book;
     int found = 0;
     searchResultCount = 0;
 
@@ -35,26 +51,23 @@ void searchByTitle(){
     lower_search_title[sizeof(lower_search_title) - 1] = '\0';
     toLowerStr(lower_search_title);
 
-    while (fscanf(file, "%d|%[^|]|%[^|]|%d|%d\n",
-                  &book.id, book.title, book.author,
-                  &book.publication_year, &book.is_borrowed) == 5) {
+    printf("\nSearching through %d books...\n", *book_count_ptr);
 
+    for (int i = 0; i < *book_count_ptr; i++) {
         char lower_title[100];
-        strncpy(lower_title, book.title, sizeof(lower_title));
+        strncpy(lower_title, library_ptr[i].title, sizeof(lower_title));
         lower_title[sizeof(lower_title) - 1] = '\0';
         toLowerStr(lower_title);
 
         if (strstr(lower_title, lower_search_title)) {
-            searchResults[searchResultCount++] = book;
+            searchResults[searchResultCount++] = library_ptr[i];
             printf("\nID: %d\nTitle: %s\nAuthor: %s\nYear: %d\nStatus: %s\n",
-                   book.id, book.title, book.author,
-                   book.publication_year,
-                   book.is_borrowed ? "Borrowed" : "Available");
+                   library_ptr[i].id, library_ptr[i].title, library_ptr[i].author,
+                   library_ptr[i].publication_year,
+                   library_ptr[i].is_borrowed ? "Borrowed" : "Available");
             found = 1;
         }
     }
-
-    fclose(file);
 
     if (!found) {
         printf("No books found with title containing \"%s\".\n", search_title);
@@ -65,7 +78,6 @@ void searchByTitle(){
     int choice;
     printf("\nFilter search results:\n1. By Author\n2. By Year\n3. Exit\nChoice: ");
     scanf("%d", &choice);
-    getchar(); // consume newline
 
     switch (choice) {
         case 1: filterByAuthor(); break;
@@ -76,9 +88,10 @@ void searchByTitle(){
 
 //**************************filter By Author******************************//
 
-void filterByAuthor(){
+void filterByAuthor() {
     char author[100];
     printf("Enter author's name to filter: ");
+    clear_input_buffer();
     fgets(author, sizeof(author), stdin);
     author[strcspn(author, "\n")] = 0;
 
@@ -102,11 +115,10 @@ void filterByAuthor(){
 
 //**************************filter By Year******************************//
 
-void filterByYear(){
+void filterByYear() {
     int year;
     printf("Enter publication year to filter: ");
     scanf("%d", &year);
-    // getchar();  // consume newline after scanf (not used)
 
     int found = 0;
     for (int i = 0; i < searchResultCount; i++) {
@@ -130,93 +142,100 @@ void filterByYear(){
 
 // عرض جميع الكتب المتاحة (التي لم يتم استعارتها)
 void viewAvailableBooks() {
-    Book b;
-    FILE *fp = fopen("books.txt", "r");
+    // Initialize pointers if not done already
+    if (library_ptr == NULL) {
+        init_user_pointers();
+    }
 
-    if (!fp) {
+    if (*book_count_ptr == 0) {
         printf("No books found, currently.\n");
         return;
     }
 
     printf("\nAvailable book list:\n");
-    while (fread(&b, sizeof(Book), 1, fp)) {
-        if (!b.is_borrowed) {
-            printf("ID: %d | %s by %s (%d)\n", b.id, b.title, b.author, b.publication_year);
+    printf("--------------------------------------------------\n");
+    
+    int available_count = 0;
+    for (int i = 0; i < *book_count_ptr; i++) {
+        if (!library_ptr[i].is_borrowed) {
+            printf("ID: %d | %s by %s (%d)\n", 
+                   library_ptr[i].id, 
+                   library_ptr[i].title, 
+                   library_ptr[i].author, 
+                   library_ptr[i].publication_year);
+            available_count++;
         }
     }
-
-    fclose(fp);
+    
+    if (available_count == 0) {
+        printf("No books are currently available for borrowing.\n");
+    }
 }
 
-
 void borrowBook() {
+    // Initialize pointers if not done already
+    if (library_ptr == NULL) {
+        init_user_pointers();
+    }
+
     int id, found = 0;
-    Book b;
 
-    FILE *fp = fopen("books.txt", "r");
-    FILE *temp = fopen("temp.txt", "w");
-
-    if (!fp || !temp) {
-        printf("Error occurred while opening files.\n");
+    if (*book_count_ptr == 0) {
+        printf("No books in the library.\n");
         return;
     }
 
     printf("Enter the book ID you desire to borrow: ");
     scanf("%d", &id);
 
-    while (fread(&b, sizeof(Book), 1, fp)) {
-        if (b.id == id && !b.is_borrowed) {
-            b.is_borrowed = 1;
+    for (int i = 0; i < *book_count_ptr; i++) {
+        if (library_ptr[i].id == id && !library_ptr[i].is_borrowed) {
+            library_ptr[i].is_borrowed = 1;
             found = 1;
+            printf("The book \"%s\" by %s is borrowed successfully.\n", 
+                   library_ptr[i].title, library_ptr[i].author);
+            break;
+        } else if (library_ptr[i].id == id && library_ptr[i].is_borrowed) {
+            printf("The book \"%s\" is already borrowed.\n", library_ptr[i].title);
+            return;
         }
-        fwrite(&b, sizeof(Book), 1, temp);
     }
 
-    fclose(fp);
-    fclose(temp);
-    remove("books.txt");
-    rename("temp.txt", "books.txt");
-
-    if (found)
-        printf("The book is borrowed successfully.\n");
-    else
-        printf("The book is not found or already borrowed.\n");
+    if (!found) {
+        printf("The book with ID %d is not found.\n", id);
+    }
 }
 
-
 void returnBook() {
+    // Initialize pointers if not done already
+    if (library_ptr == NULL) {
+        init_user_pointers();
+    }
+
     int id, found = 0;
-    Book b;
 
-    FILE *fp = fopen("books.txt", "r");
-    FILE *temp = fopen("temp.txt", "w");
-
-    if (!fp || !temp) {
-        printf("Error occurred while opening files.\n");
+    if (*book_count_ptr == 0) {
+        printf("No books in the library.\n");
         return;
     }
 
     printf("Enter the book ID you want to return: ");
     scanf("%d", &id);
 
-    while (fread(&b, sizeof(Book), 1, fp)) {
-        if (b.id == id && b.is_borrowed) {
-            b.is_borrowed = 0;
+    for (int i = 0; i < *book_count_ptr; i++) {
+        if (library_ptr[i].id == id && library_ptr[i].is_borrowed) {
+            library_ptr[i].is_borrowed = 0;
             found = 1;
+            printf("The book \"%s\" by %s is returned successfully.\n", 
+                   library_ptr[i].title, library_ptr[i].author);
+            break;
+        } else if (library_ptr[i].id == id && !library_ptr[i].is_borrowed) {
+            printf("The book \"%s\" is not currently borrowed.\n", library_ptr[i].title);
+            return;
         }
-        fwrite(&b, sizeof(Book), 1, temp);
     }
 
-    fclose(fp);
-    fclose(temp);
-    remove("books.txt");
-    rename("temp.txt", "books.txt");
-
-    if (found)
-        printf("The book is returned successfully.\n");
-    else
-        printf("The book is not found or not borrowed.\n");
+    if (!found) {
+        printf("The book with ID %d is not found.\n", id);
+    }
 }
-
-
-
