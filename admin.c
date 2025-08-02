@@ -14,6 +14,16 @@ Book library[MAX_BOOKS];
 int book_count = 0;
 
 int next_id = 1;
+
+// admin.c
+
+#include "admin.h"
+
+// Definition for admin_mode
+void admin_mode(Book library[], int *book_count) {
+    printf("Admin mode activated. Total books: %d\n", *book_count);
+}
+
 // Function to find book index by ID
 
 // Function to find book by ID
