@@ -9,8 +9,8 @@ void display_book(const Book *book) {
     printf("ID: %d\n", book->id);
     printf("Title: %s\n", book->title);
     printf("Author: %s\n", book->author);
-    printf("Year: %d\n", book->publication_year); // Corrected member name
-    printf("Status: %s\n", book->is_borrowed ? "Borrowed" : "Available"); // Corrected member name
+    printf("Year: %d\n", book->publication_year); // Corrected name
+    printf("Status: %s\n", book->is_borrowed ? "Borrowed" : "Available"); // Corrected name
     printf("--------------------\n");
 }
 

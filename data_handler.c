@@ -21,8 +21,8 @@ int load_books(const char *filename, Book *books, int *count) {
                   &books[*count].id,
                   books[*count].title,
                   books[*count].author,
-                  &books[*count].publication_year, // Corrected member name
-                  &books[*count].is_borrowed) == 5) { // Corrected member name
+                  &books[*count].publication_year, // Corrected name
+                  &books[*count].is_borrowed) == 5) { // Corrected name
         (*count)++;
     }
 
@@ -43,8 +43,8 @@ int save_books(const char *filename, const Book *books, int current_book_count) 
                 books[i].id,
                 books[i].title,
                 books[i].author,
-                books[i].publication_year, // Corrected member name
-                books[i].is_borrowed);      // Corrected member name
+                books[i].publication_year, // Corrected  name
+                books[i].is_borrowed);      // Corrected name
     }
 
     fclose(file);
